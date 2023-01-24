@@ -12,11 +12,12 @@ public class GreetingsController {
 
     @GetMapping
     public ResponseEntity<String> sayHello(){
-        return ResponseEntity.ok("Hello World");
+        return ResponseEntity.ok("Hello World")
     }
 
     @GetMapping("/bye")
-    public ResponseEntity<String> goodBye(){
-        return ResponseEntity.ok("Good Bye");
+    public ResponseEntity<String> sayGoodBye(){
+        return ResponseEntity.ok("Goodbye");
     }
+
 }
