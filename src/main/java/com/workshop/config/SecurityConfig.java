@@ -1,5 +1,6 @@
 package com.workshop.config;
 
+import com.workshop.dao.UserDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -9,43 +10,31 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+
 
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
-
-    private final static List<UserDetails> APPLICATION_USERS = Arrays.asList(
-            new User(
-                    "osmandgn",
-                    "password",
-                    Collections.singleton(new SimpleGrantedAuthority("ROLE_ADMIN"))
-            ),
-            new User(
-                    "ali",
-                    "password",
-                    Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
-            )
-    );
+    private final UserDao userDao;
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.
+                csrf().disable().
                 authorizeHttpRequests().
+                antMatchers("/**/auth/**").
+                permitAll().
                 anyRequest().
                 authenticated().
                 and().
@@ -65,7 +54,7 @@ public class SecurityConfig {
     }
 
     private PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return NoOpPasswordEncoder.getInstance();
     }
 
     @Bean
@@ -79,11 +68,7 @@ public class SecurityConfig {
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                return APPLICATION_USERS
-                        .stream()
-                        .filter(u -> u.getUsername().equals(username))
-                        .findFirst()
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                return userDao.findUserByUserName(username);
             }
         };
     }

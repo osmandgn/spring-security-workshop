@@ -1,6 +1,7 @@
 package com.workshop.controller;
 
 import com.workshop.config.JwtUtils;
+import com.workshop.dao.UserDao;
 import com.workshop.dto.AuthenticatonRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,15 +20,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationController {
 
     private final AuthenticationManager authenticationManager;
-    private final UserDetailsService userDetailsService;
+    private final UserDao userDao;
     private final JwtUtils jwtUtils;
 
 
-    @PostMapping("/authenticate")
+    @PostMapping("authenticate")
     public ResponseEntity<String> authenticate(@RequestBody AuthenticatonRequest request){
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-        final UserDetails user = userDetailsService.loadUserByUsername(request.getUsername());
+        final UserDetails user = userDao.findUserByUserName(request.getUsername());
         if (user != null){
             return ResponseEntity.ok(jwtUtils.generateToken(user));
         }

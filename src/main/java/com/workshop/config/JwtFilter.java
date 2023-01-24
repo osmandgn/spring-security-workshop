@@ -1,5 +1,6 @@
 package com.workshop.config;
 
+import com.workshop.dao.UserDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +25,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final UserDetailsService userDetailsService;
+    private final UserDao userDao;
     private final JwtUtils jwtUtils;
 
 
@@ -44,7 +45,7 @@ public class JwtFilter extends OncePerRequestFilter {
         jwtToken = authHeader.substring(7); // if contain, extract the token
         userName = jwtUtils.extractUsername(jwtToken);
         if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null){
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
+            UserDetails userDetails = userDao.findUserByUserName(userName);
             if(jwtUtils.validateToken(jwtToken, userDetails)){
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
